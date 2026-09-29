@@ -327,7 +327,7 @@ $('showHowto').onclick = () => howto(true);
 howto(LS('howto') !== '0');
 
 // persisted fields
-['yymm', 'shoot', 'location'].forEach(id => {
+['yymm', 'shoot', 'location', 'folder'].forEach(id => {
   $(id).value = LS('f_' + id) || '';
   $(id).addEventListener('input', () => { SS('f_' + id, $(id).value); render(); });
 });
@@ -350,19 +350,25 @@ $('auth').onclick = () => {
       callback: async r => {
         if (r.error) { log('sign-in error: ' + r.error); toast(t('tSignFail', r.error), 'bad'); return; }
         token = r.access_token; email = '';
+        const exp = Date.now() + (r.expires_in || 3600) * 1000 - 60000;
         setAccount();
         try { const a = await api('/about?fields=user(emailAddress,displayName)'); email = a.user.emailAddress; } catch (e) { log('could not read account: ' + e.message); }
+        try { sessionStorage.setItem('auth', JSON.stringify({ token, email, exp })); } catch (e) {}
+        const mine = token; setTimeout(() => { if (token === mine) { token = null; email = ''; try { sessionStorage.removeItem('auth'); } catch (e) {} setAccount(); toast(t('tExpired'), 'info', 6000); } }, exp - Date.now());
+        if (email) SS('lastEmail', email);
         setAccount(); log('signed in as ' + email); toast(t('tSignedIn', email), 'ok');
       }
     });
   }
-  tokenClient.requestAccessToken({ prompt: token ? 'select_account' : 'consent' });
+  if (token) tokenClient.requestAccessToken({ prompt: 'select_account' });
+  else if (LS('lastEmail')) tokenClient.requestAccessToken({ prompt: '', login_hint: LS('lastEmail') });
+  else tokenClient.requestAccessToken({ prompt: 'consent' });
 };
 
 async function api(path, opts = {}) {
   if (!token) throw new Error('not signed in');
   const r = await fetch(API + path, { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
-  if (r.status === 401) { token = null; email = ''; setAccount(); toast(t('tExpired'), 'bad'); throw new Error('session expired'); }
+  if (r.status === 401) { token = null; email = ''; try { sessionStorage.removeItem('auth'); } catch (e) {} setAccount(); toast(t('tExpired'), 'bad'); throw new Error('session expired'); }
   if (r.status === 403 || r.status === 404) { const t = await r.text(); throw new Error((r.status === 404 ? t('errNotFound') : t('errAccess')) + ' · ' + t.slice(0, 120)); }
   if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 200));
   return r.json();
@@ -397,6 +403,7 @@ async function openFolder(id, name) {
     subfolders = items.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
     files = items.filter(f => f.mimeType !== 'application/vnd.google-apps.folder').map(hydrate);
     if (crumbs.length > 1) { $('location').value = crumbs[crumbs.length - 1].name; SS('f_location', $('location').value); }
+    try { sessionStorage.setItem('crumbs', JSON.stringify(crumbs)); } catch (e) {}
     sortFiles();
     $('folderbar').style.display = '';
     render();
@@ -582,7 +589,20 @@ $('rename').onclick = async () => {
   else toast(t('tDone', ok), 'ok', 5000);
 };
 
+// keep the Google session across page refreshes (Google tokens last 1 hour)
+try {
+  const a = JSON.parse(sessionStorage.getItem('auth') || 'null');
+  if (a && a.token && a.exp > Date.now()) {
+    token = a.token; email = a.email || '';
+    setTimeout(() => { if (token === a.token) { token = null; email = ''; sessionStorage.removeItem('auth'); setAccount(); toast(t('tExpired'), 'info', 6000); } }, a.exp - Date.now());
+  } else sessionStorage.removeItem('auth');
+} catch (e) {}
 applyLang(); setAccount(); render();
+if (token) {
+  let saved = null; try { saved = JSON.parse(sessionStorage.getItem('crumbs') || 'null'); } catch (e) {}
+  if (saved && saved.length) { crumbs = saved; const c = saved[saved.length - 1]; openFolder(c.id, c.name); }
+  else if ($('folder').value.trim()) $('load').click();
+}
 })();
 </script>
 </body>
