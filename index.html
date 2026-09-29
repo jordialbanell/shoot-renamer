@@ -77,6 +77,18 @@
   #log{font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:pre-wrap;color:var(--muted);padding:10px 0}
   .lang{display:flex;align-items:center;gap:2px;color:var(--muted);font-size:14px}.lang .link{font-weight:600;color:var(--muted)}.lang .link.on{color:var(--accent);text-decoration:underline}
   .adv{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:14px;padding-top:10px}
+  .modal{position:fixed;inset:0;background:rgba(16,24,40,.55);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+  .modal.show{display:flex}
+  .modal .box{background:var(--card);border-radius:14px;max-width:640px;width:100%;padding:24px 26px;box-shadow:0 20px 50px rgba(0,0,0,.25);max-height:90vh;overflow:auto}
+  .modal h3{margin:0 0 4px;font-size:20px}
+  .modal .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+  .modal ol{padding-left:22px;margin:0 0 16px}
+  .modal li{margin:10px 0}
+  .modal .linkrow{display:flex;gap:8px;margin:8px 0}
+  .modal .linkrow button{white-space:nowrap;flex:none}
+  .modal .linkrow input{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .modal .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
+  .kbd{display:inline-block;border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:0 6px;font-size:13px}
   #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(140%);transition:transform .25s;z-index:20;padding:16px 26px;border-radius:12px;font-size:17px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:90vw}
   #toast.show{transform:translateX(-50%) translateY(0)}
   #toast.ok{background:var(--ok);color:#fff}
@@ -160,6 +172,25 @@
   </details>
 </div>
 
+<div class="modal" id="convModal">
+  <div class="box">
+    <h3 data-i18n="mTitle"></h3>
+    <p class="sub" data-i18n="mSub"></p>
+    <ol>
+      <li data-i18n="mS1"></li>
+      <li><span data-i18n="mS2"></span></li>
+      <li><span data-i18n="mS3"></span>
+        <div class="linkrow"><input type="text" id="convLink" readonly><button id="copyLink" data-i18n="mCopy"></button></div></li>
+      <li data-i18n="mS4"></li>
+    </ol>
+    <div class="actions">
+      <button id="closeModal" data-i18n="mClose"></button>
+      <button id="reloadAfter" data-i18n="mReload"></button>
+      <button id="openColab" class="primary" data-i18n="mOpen"></button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -183,8 +214,14 @@ en: {
     <li>Click a <b>subfolder</b> (iPhone, Images, Card 1...). The Location box fills itself; change it if needed.</li>
     <li>Type a <b>subject</b> under each photo and press <b>Enter</b> to jump to the next. Or tick several photos and click a subject chip.</li>
     <li>Check the blue names, then click <b>Rename on Drive</b>. Renamed files turn green.</li>`,
-  howNote: 'Made a mistake? Click <b>Rename again</b> on any green card. &nbsp;·&nbsp; <b>4K videos</b> (red 4K tag): click <b>Open converter</b>, paste the link (already copied) and press ▶ on both blocks. When it finishes, click Load folder again and name the 1080p copies.',
-  convert: 'Open converter', convert4k: n => `Convert ${n} 4K video${n === 1 ? '' : 's'}`, tConvert: 'Folder link copied. In the converter: press ▶ on block 1, paste the link in block 2, press ▶.', tNoFolder: 'Load a folder first',
+  howNote: 'Made a mistake? Click <b>Rename again</b> on any green card. &nbsp;·&nbsp; <b>4K videos</b> (red 4K tag): click <b>Open converter</b> and follow the steps in the window.',
+  convert: 'Open converter',
+  mTitle: 'Convert 4K videos to 1080p', mSub: 'Runs on Google, nothing downloads to your computer. Takes about 20–60 seconds per video.',
+  mS1: 'Click <b>Open converter</b> (bottom right). It opens in a new tab.',
+  mS2: 'In the new tab, press the <b>▶</b> button on block <b>1️⃣</b>. If it warns <i>"This notebook was not authored by Google"</i>, click <b>Run anyway</b>. Then choose your Google account and click <b>Continue</b> / <b>Allow</b>.',
+  mS3: 'In block 2, click the <b>FOLDER_LINK</b> box, paste this link (<span class="kbd">Cmd</span> + <span class="kbd">V</span>, it\'s already copied) and press <b>▶</b> on block 2:',
+  mS4: 'Wait until it says <b>Converted…</b>. Come back to this tab and click <b>Reload folder</b>. The 1080p copies appear ready to name; the 4K originals are moved into a <i>4K originals</i> subfolder.',
+  mCopy: 'Copy', mCopied: 'Copied ✓', mClose: 'Close', mReload: 'Reload folder', mOpen: 'Open converter ↗', convert4k: n => `Convert ${n} 4K video${n === 1 ? '' : 's'}`, tConvert: 'Folder link copied. In the converter: press ▶ on block 1, paste the link in block 2, press ▶.', tNoFolder: 'Load a folder first',
   hide: 'Hide', show: 'Show instructions',
   lYymm: 'YYMM', lShoot: 'Shoot', lLoc: 'Location / folder', lFolder: 'Google Drive folder link', load: 'Load folder',
   subjects: 'Subjects:', addSubject: '+ add subject', noChips: 'none yet, they appear as you type',
@@ -219,8 +256,14 @@ es: {
     <li>Pulsa una <b>subcarpeta</b> (iPhone, Images, Card 1...). La casilla Location se rellena sola; cámbiala si hace falta.</li>
     <li>Escribe un <b>tema</b> debajo de cada foto y pulsa <b>Enter</b> para pasar a la siguiente. O marca varias fotos y pulsa un tema de la lista.</li>
     <li>Revisa los nombres en azul y pulsa <b>Renombrar en Drive</b>. Los archivos renombrados se ponen en verde.</li>`,
-  howNote: '¿Te has equivocado? Pulsa <b>Renombrar otra vez</b> en cualquier tarjeta verde. &nbsp;·&nbsp; <b>Vídeos 4K</b> (etiqueta roja 4K): pulsa <b>Abrir conversor</b>, pega el enlace (ya está copiado) y pulsa ▶ en los dos bloques. Cuando termine, vuelve a pulsar Cargar carpeta y pon nombre a las copias 1080p.',
-  convert: 'Abrir conversor', convert4k: n => `Convertir ${n} vídeo${n === 1 ? '' : 's'} 4K`, tConvert: 'Enlace de la carpeta copiado. En el conversor: pulsa ▶ en el bloque 1, pega el enlace en el bloque 2 y pulsa ▶.', tNoFolder: 'Primero carga una carpeta',
+  howNote: '¿Te has equivocado? Pulsa <b>Renombrar otra vez</b> en cualquier tarjeta verde. &nbsp;·&nbsp; <b>Vídeos 4K</b> (etiqueta roja 4K): pulsa <b>Abrir conversor</b> y sigue los pasos de la ventana.',
+  convert: 'Abrir conversor',
+  mTitle: 'Convertir vídeos 4K a 1080p', mSub: 'Se hace en Google, no se descarga nada a tu ordenador. Tarda unos 20–60 segundos por vídeo.',
+  mS1: 'Pulsa <b>Abrir conversor</b> (abajo a la derecha). Se abre en una pestaña nueva.',
+  mS2: 'En la pestaña nueva, pulsa el botón <b>▶</b> del bloque <b>1️⃣</b>. Si avisa <i>"This notebook was not authored by Google"</i>, pulsa <b>Run anyway</b>. Luego elige tu cuenta de Google y pulsa <b>Continuar</b> / <b>Permitir</b>.',
+  mS3: 'En el bloque 2, pulsa la casilla <b>FOLDER_LINK</b>, pega este enlace (<span class="kbd">Cmd</span> + <span class="kbd">V</span>, ya está copiado) y pulsa <b>▶</b> en el bloque 2:',
+  mS4: 'Espera a que diga <b>Converted…</b>. Vuelve a esta pestaña y pulsa <b>Recargar carpeta</b>. Las copias 1080p aparecen listas para nombrar; los originales 4K se mueven a la subcarpeta <i>4K originals</i>.',
+  mCopy: 'Copiar', mCopied: 'Copiado ✓', mClose: 'Cerrar', mReload: 'Recargar carpeta', mOpen: 'Abrir conversor ↗', convert4k: n => `Convertir ${n} vídeo${n === 1 ? '' : 's'} 4K`, tConvert: 'Enlace de la carpeta copiado. En el conversor: pulsa ▶ en el bloque 1, pega el enlace en el bloque 2 y pulsa ▶.', tNoFolder: 'Primero carga una carpeta',
   hide: 'Ocultar', show: 'Ver instrucciones',
   lYymm: 'YYMM (año+mes)', lShoot: 'Shoot (nombre de la sesión)', lLoc: 'Location / carpeta', lFolder: 'Enlace de la carpeta de Google Drive', load: 'Cargar carpeta',
   subjects: 'Temas:', addSubject: '+ añadir tema', noChips: 'aún no hay, aparecen al escribir',
@@ -498,13 +541,18 @@ $('selectAll').onclick = () => { files.forEach(f => { if (!f.done) f.selected = 
 $('selectNone').onclick = () => { files.forEach(f => f.selected = false); render(); };
 
 // ---------- export / rename ----------
-$('convert').onclick = async () => {
+const COLAB = 'https://colab.research.google.com/github/jordialbanell/shoot-renamer/blob/main/convert_4k_to_1080p.ipynb';
+async function copyLink() { try { await navigator.clipboard.writeText($('convLink').value); $('copyLink').textContent = t('mCopied'); setTimeout(() => $('copyLink').textContent = t('mCopy'), 2000); } catch (e) { $('convLink').select(); } }
+$('convert').onclick = () => {
   if (!crumbs.length) { toast(t('tNoFolder'), 'info'); return; }
-  const link = 'https://drive.google.com/drive/folders/' + crumbs[crumbs.length - 1].id;
-  try { await navigator.clipboard.writeText(link); } catch (e) { prompt('Link:', link); }
-  window.open('https://colab.research.google.com/github/jordialbanell/shoot-renamer/blob/main/convert_4k_to_1080p.ipynb', '_blank');
-  toast(t('tConvert'), 'ok', 9000);
+  $('convLink').value = 'https://drive.google.com/drive/folders/' + crumbs[crumbs.length - 1].id;
+  $('convModal').classList.add('show'); copyLink();
 };
+$('copyLink').onclick = copyLink;
+$('openColab').onclick = () => { copyLink(); window.open(COLAB, '_blank'); };
+$('closeModal').onclick = () => $('convModal').classList.remove('show');
+$('convModal').onclick = e => { if (e.target.id === 'convModal') $('convModal').classList.remove('show'); };
+$('reloadAfter').onclick = () => { $('convModal').classList.remove('show'); const c = crumbs[crumbs.length - 1]; openFolder(c.id, c.name); };
 $('exportCsv').onclick = () => {
   computeNames();
   const rows = [t('csvHead')].concat(files.map(f => [f.name, f.newName || (f.done ? t('already') : ''), f.w, f.h, f.isVideo ? t('tVideo') : t('tPhoto')]));
