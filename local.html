@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoot Renamer · Local</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#16181c;--muted:#667085;--line:#e4e7ec;--accent:#1d4ed8;--accent-soft:#eff4ff;--ok:#067647;--ok-soft:#ecfdf3;--bad:#b42318;--bad-soft:#fef3f2;--chip:#eef2ff}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:var(--accent)}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+  header{background:var(--card);border-bottom:1px solid var(--line)}
+  header .wrap{display:flex;align-items:center;gap:16px;padding-top:14px;padding-bottom:14px}
+  header h1{font-size:20px;margin:0}
+  header .tagl{color:var(--muted);font-size:14px}
+  header .right{margin-left:auto;display:flex;gap:14px;align-items:center}
+  button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer;color:var(--ink)}
+  button:hover{border-color:#c5cad3}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.go{background:var(--ok);color:#fff;border-color:var(--ok);font-weight:600;font-size:16px;padding:11px 22px}
+  button.link{border:none;background:none;color:var(--accent);padding:4px 6px}
+  button:disabled{opacity:.45;cursor:default}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+  .howto ol{margin:0;padding-left:22px}.howto li{margin:3px 0}
+  .form{display:grid;grid-template-columns:150px 1fr 1fr auto;gap:12px;align-items:end}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:13px;color:var(--muted);font-weight:500}
+  input[type=text]{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;width:100%;background:#fff}
+  input[type=text]:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .drop{margin-top:14px;border:2px dashed #c5cad3;border-radius:12px;padding:22px;text-align:center;color:var(--muted)}
+  .drop.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .drop b{color:var(--ink)}
+  .toolbar{position:sticky;top:0;z-index:5;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px;margin:16px 0;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .chip{background:var(--chip);border:1px solid #c7d2fe;border-radius:999px;padding:4px 12px;cursor:pointer;font-size:14px;user-select:none}
+  .chip:hover{background:#e0e7ff}
+  .chip .x{margin-left:8px;color:var(--muted)}
+  .muted{color:var(--muted);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;margin-bottom:30px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .card.selected{outline:3px solid var(--accent)}
+  .card.done{border-color:#abefc6;background:#fbfefc}
+  .thumb{position:relative;background:#1d1f23;min-height:120px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .frames{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:100%}
+  .frames img{width:100%;aspect-ratio:9/12;object-fit:cover;display:block;background:#000}
+  .frames.land img{aspect-ratio:16/10}
+  .thumb>img.one{width:100%;max-height:260px;object-fit:contain;display:block}
+  .thumb video{width:100%;max-height:420px;display:block;background:#000}
+  .thumb .ph{color:#999;font-size:14px;padding:40px 10px;text-align:center}
+  .thumb .tag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.7);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;pointer-events:none}
+  .thumb .tag.video{background:#b42318}
+  .thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;pointer-events:none}
+  .thumb .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-size:18px;pointer-events:none}
+  .thumb .sel{position:absolute;right:8px;top:8px;width:20px;height:20px;z-index:2}
+  .body{padding:12px;display:flex;flex-direction:column;gap:8px}
+  .orig{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta{font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .meta .res{width:90px;padding:5px 8px;font-size:13px}
+  .badge{font-size:12px;padding:1px 8px;border-radius:4px;border:1px solid var(--line);background:var(--bg)}
+  .badge.h{background:#fef7c3;border-color:#fde272}
+  .badge.v{background:#e0f2fe;border-color:#7cd4fd}
+  .badge.k4{background:var(--bad-soft);border-color:#fda29b;color:var(--bad)}
+  .newname{font-size:12px;word-break:break-all;padding:8px;background:var(--bg);border-radius:8px;min-height:36px;font-family:ui-monospace,Menlo,monospace}
+  .newname.ok{color:var(--accent);background:var(--accent-soft)}
+  .newname.done{color:var(--ok);background:var(--ok-soft)}
+  .donebar{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ok);font-weight:600}
+  .empty{padding:50px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:12px}
+  .warnbox{background:var(--bad-soft);border:1px solid #fda29b;color:var(--bad);border-radius:10px;padding:14px 16px;font-weight:600}
+  .lang{display:flex;align-items:center;gap:2px;color:var(--muted);font-size:14px}.lang .link{font-weight:600;color:var(--muted)}.lang .link.on{color:var(--accent);text-decoration:underline}
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(160%);transition:transform .25s;z-index:20;padding:16px 26px;border-radius:12px;font-size:17px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:90vw}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  #toast.ok{background:var(--ok);color:#fff}#toast.bad{background:var(--bad);color:#fff}#toast.info{background:var(--ink);color:#fff}
+  @media (max-width:800px){.form{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Shoot Renamer</h1>
+    <span class="tagl" data-i18n="tag"></span>
+    <div class="right">
+      <a href="./" data-i18n="toDrive"></a>
+      <div class="lang"><button class="link" data-lang="en">EN</button>|<button class="link" data-lang="es">ES</button></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="nosupport" class="panel warnbox" style="display:none" data-i18n="noSupport"></div>
+
+  <div class="panel howto">
+    <ol>
+      <li data-i18n="h1"></li>
+      <li data-i18n="h2"></li>
+      <li data-i18n="h3"></li>
+      <li data-i18n="h4"></li>
+    </ol>
+  </div>
+
+  <div class="panel">
+    <div class="form">
+      <div class="field"><label data-i18n="lYymm"></label><input type="text" id="yymm" placeholder="2604" maxlength="4"></div>
+      <div class="field"><label data-i18n="lShoot"></label><input type="text" id="shoot" data-i18n-ph="phShoot"></div>
+      <div class="field"><label data-i18n="lLoc"></label><input type="text" id="location" data-i18n-ph="phLoc"></div>
+      <button class="primary" id="pick" data-i18n="pick"></button>
+    </div>
+    <div class="drop" id="drop" data-i18n="drop"></div>
+  </div>
+
+  <div class="toolbar" id="toolbar" style="display:none">
+    <div class="row">
+      <strong id="folderName"></strong>
+      <span class="muted" id="counts"></span>
+      <span class="grow"></span>
+      <button id="selAll" data-i18n="selAll"></button>
+      <button id="selNone" data-i18n="selNone"></button>
+      <button id="undo" data-i18n="undo" disabled></button>
+      <button id="csv" data-i18n="csv"></button>
+      <button class="go" id="rename" disabled></button>
+    </div>
+    <div class="row">
+      <span class="muted" data-i18n="subjects"></span>
+      <div class="chips" id="chips"></div>
+      <span class="grow"></span>
+      <input type="text" id="newChip" style="width:200px" data-i18n-ph="addChip">
+    </div>
+  </div>
+
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty" data-i18n="emptyMsg"></div>
+</div>
+<datalist id="subjectlist"></datalist>
+<div id="toast"></div>
+
+<script>
+const T = {
+  en: {
+    tag: 'files on your computer', toDrive: 'Google Drive version',
+    noSupport: 'This page needs Google Chrome or Microsoft Edge on a computer. Open the same link there.',
+    h1: 'Fill in <b>YYMM</b> and <b>Shoot</b>. <b>Location</b> is the source folder (iPhone, Card 1, Clips…).',
+    h2: 'Click <b>Choose folder</b> (or drag the folder here) and click <b>Edit files</b> / <b>Allow</b> when Chrome asks.',
+    h3: 'Each video shows 3 frames (click to play). Type the subject and press <b>Enter</b> to jump to the next one. Or tick several and click a subject chip.',
+    h4: 'Check the blue names and click <b>Rename</b>. Files are renamed right in your folder. <b>Undo</b> puts the old names back.',
+    lYymm: 'YYMM (year+month)', lShoot: 'Shoot', lLoc: 'Location / folder', phShoot: 'e.g. Barnes', phLoc: 'e.g. Card 3',
+    pick: 'Choose folder', drop: 'or drag the folder here',
+    selAll: 'Select all', selNone: 'Clear selection', undo: 'Undo', csv: 'Export CSV',
+    renameN: n => `Rename ${n} file${n === 1 ? '' : 's'}`,
+    subjects: 'Subjects:', addChip: '+ add subject', noChips: 'none yet, they appear as you type',
+    emptyMsg: 'Choose a folder to start.',
+    counts: (a, d, r, s) => `${a} files · ${d} named · ${r} ready · ${s} without subject`,
+    video: 'VIDEO', photo: 'PHOTO', land: 'landscape', port: 'portrait', square: 'square', size: 'size',
+    subjPh: 'Subject + Enter', now: 'Now: ', named: '✓ Named', again: 'Change', loading: 'loading…',
+    noPrev: 'no preview (this format can\'t be shown here, but it can still be renamed)',
+    needFields: 'Fill YYMM (4 digits) and Shoot first', needLoc: 'Fill Location',
+    done: n => `✓ ${n} renamed`, errs: n => `${n} could not be renamed (see the card)`, exists: 'a file with that name already exists',
+    undone: n => `↩ ${n} names restored`, perm: 'Chrome needs permission to edit the folder. Try again and click Allow.',
+    k4: 'Still 4K: convert first', loaded: n => `${n} files loaded`, reading: (i, n) => `Reading previews ${i}/${n}…`
+  },
+  es: {
+    tag: 'archivos en tu ordenador', toDrive: 'Versión Google Drive',
+    noSupport: 'Esta página necesita Google Chrome o Microsoft Edge en un ordenador. Abre el mismo enlace ahí.',
+    h1: 'Rellena <b>YYMM</b> y <b>Shoot</b>. <b>Location</b> es la carpeta de origen (iPhone, Card 1, Clips…).',
+    h2: 'Pulsa <b>Elegir carpeta</b> (o arrastra la carpeta aquí) y pulsa <b>Editar archivos</b> / <b>Permitir</b> cuando Chrome pregunte.',
+    h3: 'Cada vídeo muestra 3 fotogramas (clic para reproducir). Escribe el tema y pulsa <b>Enter</b> para pasar al siguiente. O marca varios y pulsa un tema.',
+    h4: 'Revisa los nombres en azul y pulsa <b>Renombrar</b>. Se renombran directamente en tu carpeta. <b>Deshacer</b> vuelve a los nombres de antes.',
+    lYymm: 'YYMM (año+mes)', lShoot: 'Shoot (sesión)', lLoc: 'Location / carpeta', phShoot: 'ej. Barnes', phLoc: 'ej. Card 3',
+    pick: 'Elegir carpeta', drop: 'o arrastra la carpeta aquí',
+    selAll: 'Seleccionar todo', selNone: 'Quitar selección', undo: 'Deshacer', csv: 'Exportar CSV',
+    renameN: n => `Renombrar ${n} archivo${n === 1 ? '' : 's'}`,
+    subjects: 'Temas:', addChip: '+ añadir tema', noChips: 'aún no hay, aparecen al escribir',
+    emptyMsg: 'Elige una carpeta para empezar.',
+    counts: (a, d, r, s) => `${a} archivos · ${d} con nombre · ${r} listos · ${s} sin tema`,
+    video: 'VÍDEO', photo: 'FOTO', land: 'horizontal', port: 'vertical', square: 'cuadrada', size: 'tamaño',
+    subjPh: 'Tema + Enter', now: 'Ahora: ', named: '✓ Con nombre', again: 'Cambiar', loading: 'cargando…',
+    noPrev: 'sin vista previa (este formato no se puede mostrar aquí, pero sí renombrar)',
+    needFields: 'Primero rellena YYMM (4 números) y Shoot', needLoc: 'Rellena Location',
+    done: n => `✓ ${n} renombrados`, errs: n => `${n} no se pudieron renombrar (mira la tarjeta)`, exists: 'ya existe un archivo con ese nombre',
+    undone: n => `↩ ${n} nombres restaurados`, perm: 'Chrome necesita permiso para editar la carpeta. Vuelve a intentarlo y pulsa Permitir.',
+    k4: 'Sigue en 4K: conviértelo primero', loaded: n => `${n} archivos cargados`, reading: (i, n) => `Leyendo vistas previas ${i}/${n}…`
+  }
+};
+const $ = id => document.getElementById(id);
+const LS = (k, v) => { try { if (v === undefined) return localStorage.getItem('loc_' + k); localStorage.setItem('loc_' + k, v); } catch (e) { return null; } };
+let lang = LS('lang') || ((navigator.language || '').startsWith('en') ? 'en' : 'es');
+const t = (k, ...a) => { const v = T[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.innerHTML = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  if (files.length) render();
+}
+document.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { lang = b.dataset.lang; LS('lang', lang); applyLang(); });
+
+let toastTimer;
+function toast(msg, kind = 'info', ms = 4000) { const el = $('toast'); el.textContent = msg; el.className = kind + ' show'; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.className = kind, ms); }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const VID = ['mp4', 'mov', 'm4v', 'mkv', 'avi', 'mts', 'webm'];
+const IMG = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'tif', 'tiff', 'gif'];
+const NAME_RE = /^(\d{4})_(.+?)_(.+?)_(.+?)_(\d{2,3})_([^_]+)\.[A-Za-z0-9]+$/;
+let dir = null, files = [], undoLog = [], loadToken = 0;
+let chips = JSON.parse(LS('chips') || '[]');
+
+for (const id of ['yymm', 'shoot', 'location']) {
+  $(id).value = LS('f_' + id) || '';
+  $(id).addEventListener('input', () => { LS('f_' + id, $(id).value); if (files.length) render(); });
+}
+if (!('showDirectoryPicker' in window)) { $('nosupport').style.display = ''; $('pick').disabled = true; }
+
+$('pick').onclick = async () => {
+  try { await openDir(await window.showDirectoryPicker({ id: 'shootrenamer', mode: 'readwrite' })); }
+  catch (e) { if (e.name !== 'AbortError') toast(e.message, 'bad', 7000); }
+};
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove('over')));
+drop.addEventListener('drop', async e => {
+  e.preventDefault();
+  const it = [...e.dataTransfer.items].find(i => i.kind === 'file');
+  if (!it || !it.getAsFileSystemHandle) return toast(t('noSupport'), 'bad', 7000);
+  const h = await it.getAsFileSystemHandle();
+  if (h && h.kind === 'directory') openDir(h); else toast(t('drop'), 'bad');
+});
+
+async function openDir(h) {
+  if (h.requestPermission && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') return toast(t('perm'), 'bad', 7000);
+  dir = h; undoLog = []; $('undo').disabled = true;
+  const token = ++loadToken;
+  if (!/^(1080p|4k originals)$/i.test(h.name)) { $('location').value = h.name; LS('f_location', h.name); }
+  const list = [];
+  for await (const entry of h.values()) {
+    if (entry.kind !== 'file') continue;
+    const ext = (entry.name.match(/\.([A-Za-z0-9]+)$/) || ['', ''])[1];
+    const low = ext.toLowerCase();
+    if (!VID.includes(low) && !IMG.includes(low)) continue;
+    if (/\.part\.mp4$/i.test(entry.name)) continue;
+    const file = await entry.getFile();
+    if (entry.name.startsWith('._') && file.size < 1e6) continue;
+    list.push({ handle: entry, name: entry.name, ext, isVideo: VID.includes(low), w: 0, h: 0, long: 0, dur: 0, frames: null, res: '', subject: '', selected: false, done: false, playing: false });
+  }
+  list.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  list.forEach(markDone);
+  files = list;
+  $('folderName').textContent = '📁 ' + h.name;
+  $('toolbar').style.display = '';
+  render();
+  toast(t('loaded', files.length), 'info', 2500);
+  for (let i = 0; i < files.length; i++) {
+    if (token !== loadToken) return;
+    await readMeta(files[i]);
+    if (token !== loadToken) return;
+    if (!files[i].res) files[i].res = defaultRes(files[i]);
+    updateCard(i);
+  }
+  render();
+}
+
+function markDone(f) {
+  const m = f.name.match(NAME_RE);
+  f.done = !!m; f.existingNum = m ? parseInt(m[5], 10) : 0;
+  f.parsed = m ? { yymm: m[1], shoot: m[2], loc: m[3], subj: m[4], res: m[6] } : null;
+}
+function defaultRes(f) {
+  if (!f.long) { const m = f.name.replace(/\.[^.]+$/, '').match(/_(\d{3,4}(?:p|px)?|4K)$/i); return m ? m[1] : ''; }
+  if (f.isVideo) return f.long === 1920 ? '1080p' : String(f.long);
+  return f.long + 'px';
+}
+
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+const once = (el, ev) => new Promise((res, rej) => { el.addEventListener(ev, res, { once: true }); el.addEventListener('error', () => rej(new Error('media error')), { once: true }); });
+
+async function readMeta(f) {
+  let url;
+  try {
+    const file = await f.handle.getFile();
+    url = URL.createObjectURL(file);
+    const cv = document.createElement('canvas'), cx = cv.getContext('2d');
+    if (f.isVideo) {
+      const v = document.createElement('video');
+      v.muted = true; v.preload = 'auto'; v.playsInline = true; v.src = url;
+      await withTimeout(once(v, 'loadeddata'), 15000);
+      f.w = v.videoWidth; f.h = v.videoHeight; f.long = Math.max(f.w, f.h); f.dur = Math.round(v.duration || 0);
+      if (!f.w) throw new Error('no video');
+      const W = 360, H = Math.round(W * f.h / f.w); cv.width = W; cv.height = H;
+      f.frames = [];
+      for (const p of [0.12, 0.5, 0.88]) {
+        v.currentTime = Math.min(v.duration * p, Math.max(0, v.duration - 0.05));
+        await withTimeout(once(v, 'seeked'), 8000);
+        cx.drawImage(v, 0, 0, W, H);
+        f.frames.push(cv.toDataURL('image/jpeg', 0.72));
+      }
+      v.removeAttribute('src'); v.load();
+    } else {
+      const bmp = await withTimeout(createImageBitmap(file), 15000);
+      f.w = bmp.width; f.h = bmp.height; f.long = Math.max(f.w, f.h);
+      const W = 520, H = Math.round(W * f.h / f.w); cv.width = W; cv.height = H;
+      cx.drawImage(bmp, 0, 0, W, H); bmp.close && bmp.close();
+      f.frames = [cv.toDataURL('image/jpeg', 0.75)];
+    }
+  } catch (e) { f.frames = f.frames && f.frames.length ? f.frames : []; }
+  finally { if (url) URL.revokeObjectURL(url); }
+}
+
+function clean(s) { return String(s || '').replace(/[\\/:*?"<>|_]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function computeNames() {
+  const yymm = $('yymm').value.trim(), shoot = clean($('shoot').value), loc = clean($('location').value);
+  const counters = {};
+  const key = s => [yymm, shoot, loc, s].join('|').toLowerCase();
+  for (const f of files) if (f.done && f.parsed) {
+    const k = [f.parsed.yymm, f.parsed.shoot, f.parsed.loc, f.parsed.subj].join('|').toLowerCase();
+    counters[k] = Math.max(counters[k] || 0, f.existingNum);
+  }
+  for (const f of files) {
+    f.newName = '';
+    if (f.done) continue;
+    const subj = clean(f.subject);
+    if (!/^\d{4}$/.test(yymm) || !shoot || !loc || !subj || !f.res) continue;
+    const k = key(subj);
+    counters[k] = (counters[k] || 0) + 1;
+    f.newName = `${yymm}_${shoot}_${loc}_${subj}_${String(counters[k]).padStart(2, '0')}_${clean(f.res).replace(/ /g, '')}.${f.ext}`;
+  }
+}
+
+function thumbHTML(f) {
+  const tag = `<span class="tag ${f.isVideo ? 'video' : ''}">${f.isVideo ? '▶ ' + t('video') : t('photo')}</span>`;
+  const dur = f.dur ? `<span class="dur">${Math.floor(f.dur / 60)}:${String(f.dur % 60).padStart(2, '0')}</span>` : '';
+  const sel = f.done ? '' : `<input type="checkbox" class="sel" ${f.selected ? 'checked' : ''}>`;
+  let inner;
+  if (f.playing) inner = `<video controls autoplay muted src="${f.playUrl}"></video>`;
+  else if (f.frames === null) inner = `<div class="ph">${t('loading')}</div>`;
+  else if (!f.frames.length) inner = `<div class="ph">${t('noPrev')}</div>`;
+  else if (f.isVideo) inner = `<div class="frames ${f.w >= f.h ? 'land' : ''}">${f.frames.map(s => `<img src="${s}" alt="">`).join('')}</div><span class="play">▶</span>`;
+  else inner = `<img class="one" src="${f.frames[0]}" alt="">`;
+  return inner + tag + (f.playing ? '' : dur) + sel;
+}
+function cardHTML(f, i) {
+  const k4 = f.isVideo && f.long > 1920;
+  return `
+  <div class="card ${f.selected ? 'selected' : ''} ${f.done ? 'done' : ''}" data-i="${i}">
+    <div class="thumb">${thumbHTML(f)}</div>
+    <div class="body">
+      <div class="orig" title="${esc(f.name)}">${f.done ? '' : t('now')}${esc(f.name)}</div>
+      <div class="meta">
+        <span>${f.w ? f.w + '×' + f.h : ''}</span>
+        ${f.w ? `<span class="badge ${f.w > f.h ? 'h' : 'v'}">${f.w > f.h ? t('land') : f.w < f.h ? t('port') : t('square')}</span>` : ''}
+        ${k4 ? `<span class="badge k4" title="${t('k4')}">4K</span>` : ''}
+        ${f.done ? '' : `<input type="text" class="res" value="${esc(f.res)}" placeholder="${t('size')}" title="${t('size')}">`}
+      </div>
+      ${f.done
+        ? `<div class="donebar"><span>${t('named')}</span><button class="link again">${t('again')}</button></div>`
+        : `<input type="text" class="subject" list="subjectlist" placeholder="${t('subjPh')}" value="${esc(f.subject)}">
+           <div class="newname ${f.newName ? 'ok' : ''}">${f.newName ? '→ ' + esc(f.newName) : (f.err ? '⚠ ' + esc(f.err) : '')}</div>`}
+    </div>
+  </div>`;
+}
+function updateCard(i) {
+  const el = document.querySelector(`.card[data-i="${i}"]`);
+  if (!el) return;
+  el.querySelector('.thumb').innerHTML = thumbHTML(files[i]);
+  const f = files[i];
+  const res = el.querySelector('.res'); if (res && !res.value && f.res) res.value = f.res;
+  const meta = el.querySelector('.meta span'); if (meta && f.w) { const tmp = document.createElement('div'); tmp.innerHTML = cardHTML(f, i); el.querySelector('.meta').innerHTML = tmp.querySelector('.meta').innerHTML; }
+  refreshNames();
+}
+function refreshNames() {
+  computeNames();
+  document.querySelectorAll('.card').forEach(el => {
+    const f = files[+el.dataset.i]; const nn = el.querySelector('.newname');
+    if (nn) { nn.className = 'newname ' + (f.newName ? 'ok' : ''); nn.textContent = f.newName ? '→ ' + f.newName : (f.err ? '⚠ ' + f.err : ''); }
+  });
+  updateCounts();
+}
+function updateCounts() {
+  const done = files.filter(f => f.done).length, ready = files.filter(f => f.newName).length;
+  const nosub = files.filter(f => !f.done && !clean(f.subject)).length;
+  $('counts').textContent = t('counts', files.length, done, ready, nosub);
+  $('rename').textContent = t('renameN', ready); $('rename').disabled = !ready;
+}
+function renderChips() {
+  $('chips').innerHTML = chips.length ? chips.map(c => `<span class="chip" data-c="${esc(c)}">${esc(c)}<span class="x" title="✕">✕</span></span>`).join('') : `<span class="muted">${t('noChips')}</span>`;
+  $('subjectlist').innerHTML = chips.map(c => `<option value="${esc(c)}">`).join('');
+}
+function addChip(s) { s = clean(s); if (!s || chips.some(c => c.toLowerCase() === s.toLowerCase())) return; chips.push(s); LS('chips', JSON.stringify(chips)); renderChips(); }
+function render() {
+  computeNames();
+  $('grid').innerHTML = files.map(cardHTML).join('');
+  $('empty').style.display = files.length ? 'none' : '';
+  renderChips(); updateCounts();
+}
+
+$('grid').addEventListener('input', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const f = files[+card.dataset.i];
+  if (e.target.classList.contains('subject')) f.subject = e.target.value;
+  if (e.target.classList.contains('res')) f.res = e.target.value;
+  f.err = ''; refreshNames();
+});
+$('grid').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.classList.contains('subject')) return;
+  e.preventDefault();
+  const i = +e.target.closest('.card').dataset.i;
+  addChip(files[i].subject);
+  const next = files.findIndex((f, j) => j > i && !f.done);
+  if (next >= 0) { const el = document.querySelector(`.card[data-i="${next}"] .subject`); el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+});
+$('grid').addEventListener('change', e => {
+  if (!e.target.classList.contains('sel')) return;
+  const card = e.target.closest('.card'); const f = files[+card.dataset.i];
+  f.selected = e.target.checked; card.classList.toggle('selected', f.selected);
+});
+$('grid').addEventListener('click', async e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const i = +card.dataset.i, f = files[i];
+  if (e.target.classList.contains('again')) { f.done = false; f.subject = f.parsed ? f.parsed.subj : ''; f.res = f.parsed ? f.parsed.res : f.res; render(); return; }
+  if (e.target.closest('.thumb') && !e.target.classList.contains('sel') && e.target.tagName !== 'VIDEO' && f.isVideo) {
+    if (!f.playing) { f.playUrl = URL.createObjectURL(await f.handle.getFile()); f.playing = true; }
+    card.querySelector('.thumb').innerHTML = thumbHTML(f);
+  }
+});
+$('chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (!chip) return;
+  const c = chip.dataset.c;
+  if (e.target.classList.contains('x')) { chips = chips.filter(x => x !== c); LS('chips', JSON.stringify(chips)); renderChips(); return; }
+  const sel = files.filter(f => f.selected && !f.done);
+  if (!sel.length) { const el = document.activeElement; if (el && el.classList && el.classList.contains('subject')) { el.value = c; el.dispatchEvent(new Event('input', { bubbles: true })); } return; }
+  sel.forEach(f => { f.subject = c; f.selected = false; });
+  render();
+});
+$('newChip').addEventListener('keydown', e => { if (e.key === 'Enter') { addChip(e.target.value); e.target.value = ''; } });
+$('selAll').onclick = () => { files.forEach(f => { if (!f.done) f.selected = true; }); render(); };
+$('selNone').onclick = () => { files.forEach(f => f.selected = false); render(); };
+
+async function exists(name) { try { await dir.getFileHandle(name); return true; } catch (e) { return false; } }
+async function renameHandle(handle, newName) {
+  if (typeof handle.move === 'function') {
+    try { await handle.move(newName); return handle; } catch (e) { if (!/NotSupported|NotAllowed|TypeError|InvalidModification/i.test(e.name + e.message)) throw e; }
+  }
+  const nh = await dir.getFileHandle(newName, { create: true });
+  const w = await nh.createWritable();
+  await (await handle.getFile()).stream().pipeTo(w);
+  await dir.removeEntry(handle.name);
+  return nh;
+}
+$('rename').onclick = async () => {
+  if (!/^\d{4}$/.test($('yymm').value.trim()) || !clean($('shoot').value)) return toast(t('needFields'), 'bad');
+  computeNames();
+  const todo = files.filter(f => f.newName);
+  $('rename').disabled = true;
+  const batch = []; let ok = 0, bad = 0;
+  for (const f of todo) {
+    try {
+      if (f.newName !== f.name && await exists(f.newName)) throw new Error(t('exists'));
+      $('rename').textContent = `${ok + bad + 1}/${todo.length}…`;
+      const old = f.name, nh = f.newName === f.name ? f.handle : await renameHandle(f.handle, f.newName);
+      f.handle = nh; f.name = f.newName; markDone(f); f.subject = ''; f.err = '';
+      batch.push({ f, from: old, to: f.name }); ok++;
+    } catch (e) { f.err = e.message; bad++; }
+  }
+  if (batch.length) { undoLog.push(batch); $('undo').disabled = false; }
+  render();
+  toast(bad ? t('done', ok) + ' · ' + t('errs', bad) : t('done', ok), bad ? 'bad' : 'ok', bad ? 8000 : 4000);
+};
+$('undo').onclick = async () => {
+  const batch = undoLog.pop(); if (!batch) return;
+  let n = 0;
+  for (const b of batch.slice().reverse()) {
+    try { if (await exists(b.from)) continue; b.f.handle = await renameHandle(b.f.handle, b.from); b.f.name = b.from; markDone(b.f); b.f.subject = b.f.parsed ? '' : clean(b.to.split('_')[3] || ''); n++; } catch (e) { b.f.err = e.message; }
+  }
+  $('undo').disabled = !undoLog.length;
+  render(); toast(t('undone', n), 'info');
+};
+$('csv').onclick = () => {
+  computeNames();
+  const rows = [['original', 'new']].concat(undoLog.flat().map(b => [b.from, b.to])).concat(files.filter(f => f.newName).map(f => [f.name, f.newName]));
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `renames_${(dir && dir.name) || 'folder'}.csv`; a.click();
+};
+
+applyLang(); renderChips();
+</script>
+</body>
+</html>
