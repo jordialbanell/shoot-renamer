@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoot Renamer</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--ink:#1a1d21;--muted:#6b7280;--line:#e5e7eb;--accent:#1d4ed8;--accent-ink:#fff;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--chip:#eef2ff}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0 12px 0 0}
+  .field{display:flex;flex-direction:column;gap:2px}
+  .field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  input[type=text]{border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit;min-width:90px}
+  input.wide{min-width:320px}
+  button{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:6px 12px;font:inherit;cursor:pointer}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  button.danger{background:var(--bad);color:#fff;border-color:var(--bad)}
+  button:disabled{opacity:.5;cursor:default}
+  .bar{padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--card)}
+  .crumbs{color:var(--muted)}
+  .crumbs b{color:var(--ink)}
+  .subfolders{display:flex;gap:6px;flex-wrap:wrap}
+  .subfolders button{padding:4px 10px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .chip{background:var(--chip);border:1px solid #c7d2fe;border-radius:999px;padding:3px 10px;cursor:pointer;font-size:13px;user-select:none}
+  .chip:hover{background:#e0e7ff}
+  .chip .x{margin-left:6px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+  .card.selected{outline:2px solid var(--accent)}
+  .card.done{opacity:.55}
+  .thumb{position:relative;aspect-ratio:1/1;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+  .thumb img{width:100%;height:100%;object-fit:contain}
+  .thumb .tag{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px}
+  .thumb .dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px}
+  .thumb .sel{position:absolute;right:6px;top:6px;width:18px;height:18px}
+  .body{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+  .orig{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta{font-size:12px;display:flex;gap:8px;align-items:center}
+  .meta .res{width:80px;min-width:0;padding:3px 6px}
+  .subject{width:100%}
+  .newname{font-size:11px;word-break:break-all;padding:6px;background:var(--bg);border-radius:6px;min-height:34px}
+  .newname.ok{color:var(--ok)}
+  .newname.done{color:var(--muted)}
+  .status{margin-left:auto;color:var(--muted)}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .sep{width:1px;height:28px;background:var(--line)}
+  .hint{font-size:12px;color:var(--muted)}
+  #log{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;padding:10px 16px;color:var(--muted)}
+  .badge{font-size:11px;padding:1px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--line)}
+  .badge.h{background:#fef3c7;border-color:#fcd34d}
+  .badge.v{background:#dcfce7;border-color:#86efac}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Shoot Renamer</h1>
+  <div class="field"><label>YYMM</label><input type="text" id="yymm" placeholder="2506" size="5" maxlength="4"></div>
+  <div class="field"><label>Shoot</label><input type="text" id="shoot" placeholder="Pee In The Park"></div>
+  <div class="field"><label>Location / folder slot</label><input type="text" id="location" placeholder="Images"></div>
+  <div class="sep"></div>
+  <div class="field"><label>Drive folder link or ID</label><input type="text" id="folder" class="wide" placeholder="https://drive.google.com/drive/folders/..."></div>
+  <button id="load" class="primary">Load folder</button>
+  <div class="sep"></div>
+  <button id="auth">Sign in to Drive</button>
+  <button id="setup" title="Client ID">Setup</button>
+  <span class="status" id="user"></span>
+</header>
+
+<div class="bar" id="folderbar" style="display:none">
+  <span class="crumbs" id="crumbs"></span>
+  <div class="subfolders" id="subfolders"></div>
+  <span class="status">
+    <label><input type="checkbox" id="pxImages" checked> px suffix for images</label>
+    &nbsp;&nbsp;<label><input type="checkbox" id="labelVideo" checked> 1080p label for 1920 videos</label>
+    &nbsp;&nbsp;Sort:
+    <select id="sort"><option value="name">name</option><option value="created">capture time</option></select>
+  </span>
+</div>
+
+<div class="bar" id="chipbar" style="display:none">
+  <span class="hint">Subjects (click to apply to selected cards, or to the last focused card):</span>
+  <div class="chips" id="chips"></div>
+  <input type="text" id="newchip" placeholder="add subject" size="14">
+  <span class="status">
+    <button id="selectAll">Select all</button>
+    <button id="selectNone">Clear selection</button>
+    <button id="exportCsv">Export CSV</button>
+    <button id="rename" class="danger">Rename on Drive</button>
+  </span>
+</div>
+
+<div class="grid" id="grid"><div class="empty">Sign in, paste a Drive folder link, load.</div></div>
+<div id="log"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(() => {
+const SCOPE = 'https://www.googleapis.com/auth/drive';
+const API = 'https://www.googleapis.com/drive/v3';
+const LS = k => localStorage.getItem(k);
+const SS = (k, v) => localStorage.setItem(k, v);
+const $ = id => document.getElementById(id);
+
+let token = null, tokenClient = null;
+let files = [];          // current folder items (non-folders)
+let subfolders = [];
+let crumbs = [];         // [{id,name}]
+let focused = null;      // file id of last focused subject input
+let chips = JSON.parse(LS('chips') || '[]');
+
+// persist shoot fields
+['yymm','shoot','location'].forEach(id => {
+  $(id).value = LS('f_' + id) || '';
+  $(id).addEventListener('input', () => { SS('f_' + id, $(id).value); render(); });
+});
+$('pxImages').checked = LS('pxImages') !== '0';
+$('labelVideo').checked = LS('labelVideo') !== '0';
+$('pxImages').onchange = () => { SS('pxImages', $('pxImages').checked ? '1' : '0'); files.forEach(f => f.res = defaultRes(f)); render(); };
+$('labelVideo').onchange = () => { SS('labelVideo', $('labelVideo').checked ? '1' : '0'); files.forEach(f => f.res = defaultRes(f)); render(); };
+$('sort').onchange = () => { sortFiles(); render(); };
+
+function log(m) { $('log').textContent = (m + '\n' + $('log').textContent).slice(0, 4000); }
+
+// ---------- auth ----------
+$('setup').onclick = () => {
+  const id = prompt('Google OAuth Client ID (Web application):', LS('clientId') || '');
+  if (id !== null) { SS('clientId', id.trim()); tokenClient = null; }
+};
+$('auth').onclick = () => {
+  const clientId = LS('clientId');
+  if (!clientId) { alert('Click Setup and paste your OAuth Client ID first.'); return; }
+  if (!window.google) { alert('Google sign-in library not loaded yet, try again in a second.'); return; }
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId, scope: SCOPE,
+      callback: r => {
+        if (r.error) { log('auth error: ' + r.error); return; }
+        token = r.access_token;
+        $('user').textContent = 'signed in';
+        $('auth').textContent = 'Re-sign in';
+        log('signed in');
+      }
+    });
+  }
+  tokenClient.requestAccessToken({ prompt: token ? '' : 'consent' });
+};
+
+async function api(path, opts = {}) {
+  if (!token) throw new Error('not signed in');
+  const r = await fetch(API + path, { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+  if (r.status === 401) { token = null; $('user').textContent = 'session expired, sign in again'; throw new Error('401'); }
+  if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 200));
+  return r.json();
+}
+
+// ---------- folder loading ----------
+function folderId(s) {
+  s = s.trim();
+  const m = s.match(/folders\/([A-Za-z0-9_-]+)/);
+  return m ? m[1] : s.split('?')[0];
+}
+$('load').onclick = () => { const id = folderId($('folder').value); if (id) { crumbs = []; openFolder(id, null); } };
+
+async function openFolder(id, name) {
+  try {
+    if (name === null) {
+      const meta = await api(`/files/${id}?fields=id,name&supportsAllDrives=true`);
+      crumbs = [{ id, name: meta.name }];
+    } else {
+      const i = crumbs.findIndex(c => c.id === id);
+      if (i >= 0) crumbs = crumbs.slice(0, i + 1); else crumbs.push({ id, name });
+    }
+    log('loading ' + crumbs.map(c => c.name).join(' / '));
+    const fields = 'nextPageToken,files(id,name,mimeType,thumbnailLink,createdTime,imageMediaMetadata(width,height,time),videoMediaMetadata(width,height,durationMillis))';
+    let items = [], pageToken = '';
+    do {
+      const q = encodeURIComponent(`'${id}' in parents and trashed=false`);
+      const d = await api(`/files?q=${q}&fields=${fields}&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&orderBy=name${pageToken ? '&pageToken=' + pageToken : ''}`);
+      items = items.concat(d.files || []); pageToken = d.nextPageToken || '';
+    } while (pageToken);
+    subfolders = items.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
+    files = items.filter(f => f.mimeType !== 'application/vnd.google-apps.folder').map(hydrate);
+    // location slot defaults to current folder name unless it is the root shoot folder
+    if (crumbs.length > 1) { $('location').value = crumbs[crumbs.length - 1].name; SS('f_location', $('location').value); }
+    sortFiles();
+    $('folderbar').style.display = ''; $('chipbar').style.display = '';
+    render();
+    log(`${files.length} files, ${subfolders.length} subfolders`);
+  } catch (e) { log('load failed: ' + e.message); }
+}
+
+const NAME_RE = /^(\d{4})_(.+?)_(.+?)_(.+?)_(\d{2,3})_([^_]+)\.[A-Za-z0-9]+$/;
+
+function hydrate(f) {
+  const im = f.imageMediaMetadata, vm = f.videoMediaMetadata;
+  const w = (im && im.width) || (vm && vm.width) || 0, h = (im && im.height) || (vm && vm.height) || 0;
+  const ext = (f.name.match(/\.([A-Za-z0-9]+)$/) || ['', ''])[1];
+  const o = { id: f.id, name: f.name, ext, w, h, long: Math.max(w, h),
+    isVideo: f.mimeType.startsWith('video/'), thumb: f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+(-c)?$/, '=s480') : '',
+    dur: vm && vm.durationMillis ? Math.round(vm.durationMillis / 1000) : 0,
+    created: (im && im.time) || f.createdTime || '', subject: '', selected: false, include: true, done: false };
+  const m = f.name.match(NAME_RE);
+  if (m) { o.done = true; o.subject = m[4]; o.existingNum = parseInt(m[5], 10); o.res = m[6]; }
+  else o.res = defaultRes(o);
+  return o;
+}
+function defaultRes(f) {
+  if (!f.long) return '';
+  if (f.isVideo) return ($('labelVideo').checked && f.long === 1920) ? '1080p' : String(f.long);
+  return $('pxImages').checked ? f.long + 'px' : String(f.long);
+}
+function sortFiles() {
+  const k = $('sort').value;
+  files.sort((a, b) => k === 'created' ? (a.created > b.created ? 1 : a.created < b.created ? -1 : 0) : a.name.localeCompare(b.name, undefined, { numeric: true }));
+}
+
+// ---------- naming ----------
+function clean(s) { return (s || '').trim().replace(/[\\/:*?"<>|_]+/g, ' ').replace(/\s+/g, ' '); }
+function computeNames() {
+  const yymm = $('yymm').value.trim(), shoot = clean($('shoot').value), loc = clean($('location').value);
+  const counters = {};
+  // existing already-renamed files reserve their numbers per subject
+  files.forEach(f => { if (f.done && f.subject) { const k = f.subject.toLowerCase(); counters[k] = Math.max(counters[k] || 0, f.existingNum || 0); } });
+  files.forEach(f => {
+    f.newName = '';
+    if (f.done || !f.include) return;
+    const subj = clean(f.subject);
+    if (!yymm || !shoot || !loc || !subj) return;
+    const k = subj.toLowerCase();
+    counters[k] = (counters[k] || 0) + 1;
+    const n = String(counters[k]).padStart(2, '0');
+    f.newName = `${yymm}_${shoot}_${loc}_${subj}_${n}_${f.res || 'RES'}${f.ext ? '.' + f.ext : ''}`;
+  });
+}
+
+// ---------- render ----------
+function render() {
+  computeNames();
+  $('crumbs').innerHTML = crumbs.map((c, i) => `<a href="#" data-i="${i}">${i === crumbs.length - 1 ? '<b>' + esc(c.name) + '</b>' : esc(c.name)}</a>`).join(' / ');
+  $('crumbs').querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault(); const c = crumbs[+a.dataset.i]; openFolder(c.id, c.name); });
+  $('subfolders').innerHTML = subfolders.map(s => `<button data-id="${s.id}" data-name="${esc(s.name)}">📁 ${esc(s.name)}</button>`).join('');
+  $('subfolders').querySelectorAll('button').forEach(b => b.onclick = () => openFolder(b.dataset.id, b.dataset.name));
+
+  const used = new Set(chips.map(c => c.toLowerCase()));
+  files.forEach(f => { const s = clean(f.subject); if (s && !used.has(s.toLowerCase())) { chips.push(s); used.add(s.toLowerCase()); } });
+  SS('chips', JSON.stringify(chips));
+  $('chips').innerHTML = chips.map(c => `<span class="chip" data-c="${esc(c)}">${esc(c)}<span class="x" title="remove">×</span></span>`).join('');
+  $('chips').querySelectorAll('.chip').forEach(el => {
+    el.onclick = e => {
+      if (e.target.classList.contains('x')) { chips = chips.filter(c => c !== el.dataset.c); render(); return; }
+      applySubject(el.dataset.c);
+    };
+  });
+
+  const g = $('grid');
+  if (!files.length) { g.innerHTML = '<div class="empty">No files here. Pick a subfolder above.</div>'; return; }
+  g.innerHTML = files.map(f => `
+    <div class="card ${f.selected ? 'selected' : ''} ${f.done ? 'done' : ''}" data-id="${f.id}">
+      <div class="thumb">
+        ${f.thumb ? `<img loading="lazy" src="${f.thumb}" alt="">` : '<span style="color:#888">no preview</span>'}
+        <span class="tag">${f.isVideo ? 'VIDEO' : 'IMAGE'}</span>
+        ${f.dur ? `<span class="dur">${Math.floor(f.dur / 60)}:${String(f.dur % 60).padStart(2, '0')}</span>` : ''}
+        <input type="checkbox" class="sel" ${f.selected ? 'checked' : ''}>
+      </div>
+      <div class="body">
+        <div class="orig" title="${esc(f.name)}">${esc(f.name)}</div>
+        <div class="meta">
+          <span>${f.w && f.h ? f.w + '×' + f.h : 'no dims'}</span>
+          ${f.w && f.h ? `<span class="badge ${f.w > f.h ? 'h' : 'v'}">${f.w > f.h ? 'landscape' : f.w < f.h ? 'portrait' : 'square'}</span>` : ''}
+          <input type="text" class="res" value="${esc(f.res || '')}" placeholder="res" ${f.done ? 'disabled' : ''}>
+        </div>
+        <input type="text" class="subject" list="subjectlist" placeholder="subject" value="${esc(f.subject)}" ${f.done ? 'disabled' : ''}>
+        <div class="newname ${f.done ? 'done' : f.newName ? 'ok' : ''}">${f.done ? 'already named' : esc(f.newName || '…')}</div>
+      </div>
+    </div>`).join('') + `<datalist id="subjectlist">${chips.map(c => `<option value="${esc(c)}">`).join('')}</datalist>`;
+
+  g.querySelectorAll('.card').forEach(card => {
+    const f = files.find(x => x.id === card.dataset.id);
+    card.querySelector('.sel').onchange = e => { f.selected = e.target.checked; card.classList.toggle('selected', f.selected); };
+    card.querySelector('.thumb').onclick = e => { if (e.target.classList.contains('sel')) return; f.selected = !f.selected; card.querySelector('.sel').checked = f.selected; card.classList.toggle('selected', f.selected); };
+    const s = card.querySelector('.subject');
+    s.onfocus = () => { focused = f.id; };
+    s.onchange = () => { f.subject = s.value; render(); };
+    s.onkeydown = e => { if (e.key === 'Enter') { f.subject = s.value; render(); focusNext(f.id); } };
+    const r = card.querySelector('.res');
+    r.onchange = () => { f.res = r.value.trim(); render(); };
+  });
+}
+function focusNext(id) {
+  const i = files.findIndex(f => f.id === id);
+  const next = files.slice(i + 1).find(f => !f.done);
+  if (next) { const el = document.querySelector(`.card[data-id="${next.id}"] .subject`); if (el) { el.focus(); el.scrollIntoView({ block: 'center' }); } }
+}
+function applySubject(s) {
+  const sel = files.filter(f => f.selected && !f.done);
+  if (sel.length) { sel.forEach(f => { f.subject = s; f.selected = false; }); }
+  else if (focused) { const f = files.find(x => x.id === focused); if (f && !f.done) f.subject = s; }
+  else { log('select cards first, or click into a subject box'); return; }
+  render();
+}
+$('newchip').onkeydown = e => { if (e.key === 'Enter') { const v = clean($('newchip').value); if (v && !chips.some(c => c.toLowerCase() === v.toLowerCase())) chips.push(v); $('newchip').value = ''; render(); } };
+$('selectAll').onclick = () => { files.forEach(f => { if (!f.done) f.selected = true; }); render(); };
+$('selectNone').onclick = () => { files.forEach(f => f.selected = false); render(); };
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ---------- export / rename ----------
+$('exportCsv').onclick = () => {
+  computeNames();
+  const rows = [['old name', 'new name', 'width', 'height', 'type']].concat(files.filter(f => f.newName).map(f => [f.name, f.newName, f.w, f.h, f.isVideo ? 'video' : 'image']));
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `rename_${$('yymm').value}_${clean($('shoot').value)}_${clean($('location').value)}.csv`; a.click();
+};
+$('rename').onclick = async () => {
+  computeNames();
+  const todo = files.filter(f => f.newName);
+  if (!todo.length) { alert('Nothing to rename. Fill YYMM, shoot, location and at least one subject.'); return; }
+  const dupes = todo.map(f => f.newName.toLowerCase()).filter((n, i, a) => a.indexOf(n) !== i);
+  if (dupes.length) { alert('Duplicate target names, fix first:\n' + [...new Set(dupes)].join('\n')); return; }
+  if (!confirm(`Rename ${todo.length} file(s) on Drive?\n\nExample:\n${todo[0].name}\n→ ${todo[0].newName}`)) return;
+  $('rename').disabled = true;
+  let ok = 0;
+  for (const f of todo) {
+    try {
+      await api(`/files/${f.id}?supportsAllDrives=true`, { method: 'PATCH', body: JSON.stringify({ name: f.newName }) });
+      f.name = f.newName; const m = f.newName.match(NAME_RE); f.done = true; f.existingNum = m ? parseInt(m[5], 10) : 0; f.newName = ''; ok++;
+      log('renamed → ' + f.name);
+    } catch (e) { log('FAILED ' + f.name + ': ' + e.message); }
+  }
+  $('rename').disabled = false;
+  render();
+  log(`done: ${ok}/${todo.length}`);
+};
+})();
+</script>
+</body>
+</html>
