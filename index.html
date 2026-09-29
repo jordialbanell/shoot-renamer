@@ -99,6 +99,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 (() => {
+localStorage.getItem('clientId') || localStorage.setItem('clientId', '643721232185-5godgh6o7sk9m568pprs0kd51ftbbqsm.apps.googleusercontent.com');
 const SCOPE = 'https://www.googleapis.com/auth/drive';
 const API = 'https://www.googleapis.com/drive/v3';
 const LS = k => localStorage.getItem(k);
