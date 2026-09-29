@@ -22,6 +22,7 @@
   button:hover{border-color:#c5cad3}
   button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
   button.go{background:var(--ok);color:#fff;border-color:var(--ok);font-weight:600;font-size:16px;padding:11px 22px}
+  button.warn{background:var(--bad-soft);color:var(--bad);border-color:#fda29b;font-weight:600}
   button.link{border:none;background:none;color:var(--accent);padding:4px 6px}
   button:disabled{opacity:.45;cursor:default}
   .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
@@ -135,6 +136,7 @@
       <span class="counts grow" id="counts"></span>
       <button id="selectAll" data-i18n="selAll"></button>
       <button id="selectNone" data-i18n="selNone"></button>
+      <button id="convert" data-i18n="convert"></button>
       <button id="exportCsv" data-i18n="csv"></button>
       <button id="rename" class="go"></button>
     </div>
@@ -181,7 +183,8 @@ en: {
     <li>Click a <b>subfolder</b> (iPhone, Images, Card 1...). The Location box fills itself; change it if needed.</li>
     <li>Type a <b>subject</b> under each photo and press <b>Enter</b> to jump to the next. Or tick several photos and click a subject chip.</li>
     <li>Check the blue names, then click <b>Rename on Drive</b>. Renamed files turn green.</li>`,
-  howNote: 'Made a mistake? Click <b>Rename again</b> on any green card. &nbsp;·&nbsp; 4K videos: convert them with the Colab notebook first, then rename here.',
+  howNote: 'Made a mistake? Click <b>Rename again</b> on any green card. &nbsp;·&nbsp; <b>4K videos</b> (red 4K tag): click <b>Open converter</b>, paste the link (already copied) and press ▶ on both blocks. When it finishes, click Load folder again and name the 1080p copies.',
+  convert: 'Open converter', convert4k: n => `Convert ${n} 4K video${n === 1 ? '' : 's'}`, tConvert: 'Folder link copied. In the converter: press ▶ on block 1, paste the link in block 2, press ▶.', tNoFolder: 'Load a folder first',
   hide: 'Hide', show: 'Show instructions',
   lYymm: 'YYMM', lShoot: 'Shoot', lLoc: 'Location / folder', lFolder: 'Google Drive folder link', load: 'Load folder',
   subjects: 'Subjects:', addSubject: '+ add subject', noChips: 'none yet, they appear as you type',
@@ -191,7 +194,7 @@ en: {
   emptyStart: 'Sign in, paste a Drive folder link, then click Load folder.', emptySub: 'No files directly in this folder. Click a subfolder above.',
   emptyNone: 'This folder is empty.', loading: 'Loading…', cantOpen: 'Could not open this folder.',
   photo: 'PHOTO', video: '▶ VIDEO', noPreview: 'no preview yet', now: 'Now: ', sizeUnknown: 'size unknown',
-  land: 'landscape', port: 'portrait', square: 'square', size: 'size', k4tip: 'Convert with the Colab notebook first',
+  land: 'landscape', port: 'portrait', square: 'square', size: 'size', k4tip: 'Convert first: click Open converter',
   named: '✓ Named', again: 'Rename again', subjPh: 'Subject + Enter', newHere: 'New name appears here',
   fillIn: f => 'Fill in ' + f + ' above',
   adv: 'Advanced settings', optPx: 'Add "px" to image sizes (e.g. 4128px)', optVid: 'Call 1920 videos "1080p"',
@@ -216,7 +219,8 @@ es: {
     <li>Pulsa una <b>subcarpeta</b> (iPhone, Images, Card 1...). La casilla Location se rellena sola; cámbiala si hace falta.</li>
     <li>Escribe un <b>tema</b> debajo de cada foto y pulsa <b>Enter</b> para pasar a la siguiente. O marca varias fotos y pulsa un tema de la lista.</li>
     <li>Revisa los nombres en azul y pulsa <b>Renombrar en Drive</b>. Los archivos renombrados se ponen en verde.</li>`,
-  howNote: '¿Te has equivocado? Pulsa <b>Renombrar otra vez</b> en cualquier tarjeta verde. &nbsp;·&nbsp; Vídeos 4K: primero conviértelos con el notebook de Colab y luego renómbralos aquí.',
+  howNote: '¿Te has equivocado? Pulsa <b>Renombrar otra vez</b> en cualquier tarjeta verde. &nbsp;·&nbsp; <b>Vídeos 4K</b> (etiqueta roja 4K): pulsa <b>Abrir conversor</b>, pega el enlace (ya está copiado) y pulsa ▶ en los dos bloques. Cuando termine, vuelve a pulsar Cargar carpeta y pon nombre a las copias 1080p.',
+  convert: 'Abrir conversor', convert4k: n => `Convertir ${n} vídeo${n === 1 ? '' : 's'} 4K`, tConvert: 'Enlace de la carpeta copiado. En el conversor: pulsa ▶ en el bloque 1, pega el enlace en el bloque 2 y pulsa ▶.', tNoFolder: 'Primero carga una carpeta',
   hide: 'Ocultar', show: 'Ver instrucciones',
   lYymm: 'YYMM (año+mes)', lShoot: 'Shoot (nombre de la sesión)', lLoc: 'Location / carpeta', lFolder: 'Enlace de la carpeta de Google Drive', load: 'Cargar carpeta',
   subjects: 'Temas:', addSubject: '+ añadir tema', noChips: 'aún no hay, aparecen al escribir',
@@ -226,7 +230,7 @@ es: {
   emptyStart: 'Inicia sesión, pega el enlace de una carpeta de Drive y pulsa Cargar carpeta.', emptySub: 'No hay archivos directamente en esta carpeta. Pulsa una subcarpeta arriba.',
   emptyNone: 'Esta carpeta está vacía.', loading: 'Cargando…', cantOpen: 'No se pudo abrir esta carpeta.',
   photo: 'FOTO', video: '▶ VÍDEO', noPreview: 'aún sin vista previa', now: 'Ahora: ', sizeUnknown: 'tamaño desconocido',
-  land: 'horizontal', port: 'vertical', square: 'cuadrada', size: 'tamaño', k4tip: 'Primero conviértelo con el notebook de Colab',
+  land: 'horizontal', port: 'vertical', square: 'cuadrada', size: 'tamaño', k4tip: 'Conviértelo primero: pulsa Abrir conversor',
   named: '✓ Con nombre', again: 'Renombrar otra vez', subjPh: 'Tema + Enter', newHere: 'Aquí aparece el nombre nuevo',
   fillIn: f => 'Rellena ' + f + ' arriba',
   adv: 'Ajustes avanzados', optPx: 'Añadir "px" al tamaño de las fotos (p. ej. 4128px)', optVid: 'Llamar "1080p" a los vídeos de 1920',
@@ -432,6 +436,9 @@ function render() {
   $('counts').innerHTML = t('counts', files.length, named, ready, left);
   $('rename').textContent = ready ? t('renameN', ready) : t('rename0');
   $('rename').disabled = !ready;
+  const n4k = files.filter(f => f.isVideo && f.long > 1920).length;
+  $('convert').textContent = n4k ? t('convert4k', n4k) : t('convert');
+  $('convert').className = n4k ? 'warn' : '';
 
   g.innerHTML = files.map(f => {
     const k4 = f.isVideo && f.long > 1920;
@@ -491,6 +498,13 @@ $('selectAll').onclick = () => { files.forEach(f => { if (!f.done) f.selected = 
 $('selectNone').onclick = () => { files.forEach(f => f.selected = false); render(); };
 
 // ---------- export / rename ----------
+$('convert').onclick = async () => {
+  if (!crumbs.length) { toast(t('tNoFolder'), 'info'); return; }
+  const link = 'https://drive.google.com/drive/folders/' + crumbs[crumbs.length - 1].id;
+  try { await navigator.clipboard.writeText(link); } catch (e) { prompt('Link:', link); }
+  window.open('https://colab.research.google.com/github/jordialbanell/shoot-renamer/blob/main/convert_4k_to_1080p.ipynb', '_blank');
+  toast(t('tConvert'), 'ok', 9000);
+};
 $('exportCsv').onclick = () => {
   computeNames();
   const rows = [t('csvHead')].concat(files.map(f => [f.name, f.newName || (f.done ? t('already') : ''), f.w, f.h, f.isVideo ? t('tVideo') : t('tPhoto')]));
