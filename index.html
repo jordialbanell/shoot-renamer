@@ -228,8 +228,8 @@ en: {
   mS1: 'Click <b>Open converter</b> (bottom right). It opens in a new tab.',
   mS2: 'In the new tab, press the <b>▶</b> button on block <b>1️⃣</b>. If it warns <i>"This notebook was not authored by Google"</i>, click <b>Run anyway</b>. Then choose your Google account and click <b>Continue</b> / <b>Allow</b>.',
   mS3: 'In block 2, click the <b>FOLDER_LINK</b> box, paste this link (<span class="kbd">Cmd</span> + <span class="kbd">V</span>, it\'s already copied) and press <b>▶</b> on block 2:',
-  mS4: 'Wait until it says <b>Converted…</b>. Come back to this tab and click <b>Reload folder</b>. The 1080p copies appear ready to name; the 4K originals are moved into a <i>4K originals</i> subfolder. <br><b>View-only folder?</b> The converter saves the 1080p videos in a new <i>1080p – …</i> folder in your Drive and prints its link. Paste that link in <b>Google Drive folder link</b> here and name them there.',
-  mCopy: 'Copy', mCopied: 'Copied ✓', mClose: 'Close', mReload: 'Reload folder', mOpen: 'Open converter ↗', convert4k: n => `Convert ${n} 4K video${n === 1 ? '' : 's'}`, tConvert: 'Folder link copied. In the converter: press ▶ on block 1, paste the link in block 2, press ▶.', tNoFolder: 'Load a folder first',
+  mS4: 'Wait until it says <b>Converted…</b>. Come back to this tab and click <b>Reload folder</b>. The 1080p copies appear ready to name; the 4K originals are moved into a <i>4K originals</i> subfolder. <br><b>View-only folder?</b> The converter saves the 1080p videos in a new <i>1080p – …</i> folder in your Drive and prints its link. Paste that link in <b>Google Drive folder link</b> here and name them there.<br><b>Big folder?</b> It converts 20 videos per run (<b>BATCH_SIZE</b>). When it says <i>▶ N video(s) left</i>, press <b>▶</b> on block 2 again. Videos already converted are skipped, so you can stop and continue any time.',
+  mCopy: 'Copy', mCopied: 'Copied ✓', mClose: 'Close', mReload: 'Reload folder', mOpen: 'Open converter ↗', convert4k: n => `Convert ${n} video${n === 1 ? '' : 's'}`, unkTip: 'Size unknown (Drive can\'t read this format). Convert it first: the converter checks the real size.', tConvert: 'Folder link copied. In the converter: press ▶ on block 1, paste the link in block 2, press ▶.', tNoFolder: 'Load a folder first',
   hide: 'Hide', show: 'Show instructions',
   lYymm: 'YYMM', lShoot: 'Shoot', lLoc: 'Location / folder', lFolder: 'Google Drive folder link', load: 'Load folder',
   subjects: 'Subjects:', addSubject: '+ add subject', noChips: 'none yet, they appear as you type',
@@ -274,8 +274,8 @@ es: {
   mS1: 'Pulsa <b>Abrir conversor</b> (abajo a la derecha). Se abre en una pestaña nueva.',
   mS2: 'En la pestaña nueva, pulsa el botón <b>▶</b> del bloque <b>1️⃣</b>. Si avisa <i>"This notebook was not authored by Google"</i>, pulsa <b>Run anyway</b>. Luego elige tu cuenta de Google y pulsa <b>Continuar</b> / <b>Permitir</b>.',
   mS3: 'En el bloque 2, pulsa la casilla <b>FOLDER_LINK</b>, pega este enlace (<span class="kbd">Cmd</span> + <span class="kbd">V</span>, ya está copiado) y pulsa <b>▶</b> en el bloque 2:',
-  mS4: 'Espera a que diga <b>Converted…</b>. Vuelve a esta pestaña y pulsa <b>Recargar carpeta</b>. Las copias 1080p aparecen listas para nombrar; los originales 4K se mueven a la subcarpeta <i>4K originals</i>. <br><b>¿Carpeta de solo lectura?</b> El conversor guarda los vídeos 1080p en una carpeta nueva <i>1080p – …</i> de tu Drive y muestra su enlace. Pega ese enlace aquí en <b>Enlace de la carpeta de Google Drive</b> y ponles nombre allí.',
-  mCopy: 'Copiar', mCopied: 'Copiado ✓', mClose: 'Cerrar', mReload: 'Recargar carpeta', mOpen: 'Abrir conversor ↗', convert4k: n => `Convertir ${n} vídeo${n === 1 ? '' : 's'} 4K`, tConvert: 'Enlace de la carpeta copiado. En el conversor: pulsa ▶ en el bloque 1, pega el enlace en el bloque 2 y pulsa ▶.', tNoFolder: 'Primero carga una carpeta',
+  mS4: 'Espera a que diga <b>Converted…</b>. Vuelve a esta pestaña y pulsa <b>Recargar carpeta</b>. Las copias 1080p aparecen listas para nombrar; los originales 4K se mueven a la subcarpeta <i>4K originals</i>. <br><b>¿Carpeta de solo lectura?</b> El conversor guarda los vídeos 1080p en una carpeta nueva <i>1080p – …</i> de tu Drive y muestra su enlace. Pega ese enlace aquí en <b>Enlace de la carpeta de Google Drive</b> y ponles nombre allí.<br><b>¿Carpeta grande?</b> Convierte 20 vídeos por vez (<b>BATCH_SIZE</b>). Cuando diga <i>▶ Quedan N</i>, pulsa <b>▶</b> otra vez en el bloque 2. Los ya convertidos se saltan, así que puedes parar y seguir cuando quieras.',
+  mCopy: 'Copiar', mCopied: 'Copiado ✓', mClose: 'Cerrar', mReload: 'Recargar carpeta', mOpen: 'Abrir conversor ↗', convert4k: n => `Convertir ${n} vídeo${n === 1 ? '' : 's'}`, unkTip: 'Tamaño desconocido (Drive no lee este formato). Conviértelo primero: el conversor mira el tamaño real.', tConvert: 'Enlace de la carpeta copiado. En el conversor: pulsa ▶ en el bloque 1, pega el enlace en el bloque 2 y pulsa ▶.', tNoFolder: 'Primero carga una carpeta',
   hide: 'Ocultar', show: 'Ver instrucciones',
   lYymm: 'YYMM (año+mes)', lShoot: 'Shoot (nombre de la sesión)', lLoc: 'Location / carpeta', lFolder: 'Enlace de la carpeta de Google Drive', load: 'Cargar carpeta',
   subjects: 'Temas:', addSubject: '+ añadir tema', noChips: 'aún no hay, aparecen al escribir',
@@ -506,7 +506,7 @@ function render() {
   if (copyMode) { const dl = destLabel(); $('copybar').innerHTML = t('copyBanner', dl.id, dl.name); wireChangeDest(); }
   $('rename').textContent = ready ? (copyMode ? t('copyN', ready) : t('renameN', ready)) : (copyMode ? t('copyN', 0) : t('rename0'));
   $('rename').disabled = !ready;
-  const n4k = files.filter(f => f.isVideo && f.long > 1920).length;
+  const n4k = files.filter(f => f.isVideo && !f.done && (f.long > 1920 || !f.long)).length;
   $('convert').textContent = n4k ? t('convert4k', n4k) : t('convert');
   $('convert').className = n4k ? 'warn' : '';
 
@@ -526,6 +526,7 @@ function render() {
           <span>${f.w && f.h ? f.w + '×' + f.h : t('sizeUnknown')}</span>
           ${f.w && f.h ? `<span class="badge ${f.w > f.h ? 'h' : 'v'}">${f.w > f.h ? t('land') : f.w < f.h ? t('port') : t('square')}</span>` : ''}
           ${k4 ? `<span class="badge k4" title="${t('k4tip')}">4K</span>` : ''}
+          ${f.isVideo && !f.long && !f.done ? `<span class="badge k4" title="${t('unkTip')}">?</span>` : ''}
           ${f.done ? '' : `<input type="text" class="res" value="${esc(f.res || '')}" placeholder="${t('size')}" title="${t('size')}">`}
         </div>
         ${f.done
