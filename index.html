@@ -89,6 +89,9 @@
   .modal .linkrow input{font-family:ui-monospace,Menlo,monospace;font-size:13px}
   .modal .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
   .kbd{display:inline-block;border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:0 6px;font-size:13px}
+  .copybar{background:#fffaeb;border:1px solid #fedf89;color:#93370d;border-radius:10px;padding:10px 14px;font-size:14px}
+  .copybar a{font-weight:600}
+  .blocked{font-size:13px;color:var(--bad);font-weight:600}
   #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(140%);transition:transform .25s;z-index:20;padding:16px 26px;border-radius:12px;font-size:17px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:90vw}
   #toast.show{transform:translateX(-50%) translateY(0)}
   #toast.ok{background:var(--ok);color:#fff}
@@ -139,6 +142,7 @@
   </div>
 
   <div class="toolbar" id="toolbar" style="display:none">
+    <div class="copybar" id="copybar" style="display:none"></div>
     <div class="row">
       <span class="muted" data-i18n="subjects"></span>
       <div class="chips grow" id="chips"></div>
@@ -214,13 +218,17 @@ en: {
     <li>Click a <b>subfolder</b> (iPhone, Images, Card 1...). The Location box fills itself; change it if needed.</li>
     <li>Type a <b>subject</b> under each photo and press <b>Enter</b> to jump to the next. Or tick several photos and click a subject chip.</li>
     <li>Check the blue names, then click <b>Rename on Drive</b>. Renamed files turn green.</li>`,
-  howNote: 'Made a mistake? Click <b>Rename again</b> on any green card. &nbsp;·&nbsp; <b>4K videos</b> (red 4K tag): click <b>Open converter</b> and follow the steps in the window.',
+  howNote: 'Made a mistake? Click <b>Rename again</b> on any green card. &nbsp;·&nbsp; <b>View-only folder?</b> No problem: the tool saves renamed copies in your own Drive instead. &nbsp;·&nbsp; <b>4K videos</b> (red 4K tag): click <b>Open converter</b> and follow the steps in the window.',
   convert: 'Open converter',
+  copyBanner: (dest, name) => `🔒 <b>View-only folder.</b> You can't rename files here, so the tool will save <b>copies with the new names</b> in your own Drive: ${dest ? `<a href="https://drive.google.com/drive/folders/${dest}" target="_blank">${name} ↗</a>` : `<b>${name}</b> (created on first copy)`} &nbsp;<button class="link" id="changeDest">Change folder</button>`,
+  copyN: n => `Copy ${n} with new names`, copying: (i, n) => `Copying ${i} of ${n}…`, copied: '✓ Copied', blocked: '⛔ Owner blocked copying. Ask for access.',
+  tCopyDone: (n, name) => `✓ Done. ${n} cop${n === 1 ? 'y' : 'ies'} saved in "${name}".`, confirmCopy: (n, a, b) => `Save ${n} renamed cop${n === 1 ? 'y' : 'ies'} to your Drive?\n\nFirst one:\n${a}\n→ ${b}`,
+  destPrompt: 'Paste the link of a Drive folder you own (leave empty to create one automatically):',
   mTitle: 'Convert 4K videos to 1080p', mSub: 'Runs on Google, nothing downloads to your computer. Takes about 20–60 seconds per video.',
   mS1: 'Click <b>Open converter</b> (bottom right). It opens in a new tab.',
   mS2: 'In the new tab, press the <b>▶</b> button on block <b>1️⃣</b>. If it warns <i>"This notebook was not authored by Google"</i>, click <b>Run anyway</b>. Then choose your Google account and click <b>Continue</b> / <b>Allow</b>.',
   mS3: 'In block 2, click the <b>FOLDER_LINK</b> box, paste this link (<span class="kbd">Cmd</span> + <span class="kbd">V</span>, it\'s already copied) and press <b>▶</b> on block 2:',
-  mS4: 'Wait until it says <b>Converted…</b>. Come back to this tab and click <b>Reload folder</b>. The 1080p copies appear ready to name; the 4K originals are moved into a <i>4K originals</i> subfolder.',
+  mS4: 'Wait until it says <b>Converted…</b>. Come back to this tab and click <b>Reload folder</b>. The 1080p copies appear ready to name; the 4K originals are moved into a <i>4K originals</i> subfolder. <br><b>View-only folder?</b> The converter saves the 1080p videos in a new <i>1080p – …</i> folder in your Drive and prints its link. Paste that link in <b>Google Drive folder link</b> here and name them there.',
   mCopy: 'Copy', mCopied: 'Copied ✓', mClose: 'Close', mReload: 'Reload folder', mOpen: 'Open converter ↗', convert4k: n => `Convert ${n} 4K video${n === 1 ? '' : 's'}`, tConvert: 'Folder link copied. In the converter: press ▶ on block 1, paste the link in block 2, press ▶.', tNoFolder: 'Load a folder first',
   hide: 'Hide', show: 'Show instructions',
   lYymm: 'YYMM', lShoot: 'Shoot', lLoc: 'Location / folder', lFolder: 'Google Drive folder link', load: 'Load folder',
@@ -256,13 +264,17 @@ es: {
     <li>Pulsa una <b>subcarpeta</b> (iPhone, Images, Card 1...). La casilla Location se rellena sola; cámbiala si hace falta.</li>
     <li>Escribe un <b>tema</b> debajo de cada foto y pulsa <b>Enter</b> para pasar a la siguiente. O marca varias fotos y pulsa un tema de la lista.</li>
     <li>Revisa los nombres en azul y pulsa <b>Renombrar en Drive</b>. Los archivos renombrados se ponen en verde.</li>`,
-  howNote: '¿Te has equivocado? Pulsa <b>Renombrar otra vez</b> en cualquier tarjeta verde. &nbsp;·&nbsp; <b>Vídeos 4K</b> (etiqueta roja 4K): pulsa <b>Abrir conversor</b> y sigue los pasos de la ventana.',
+  howNote: '¿Te has equivocado? Pulsa <b>Renombrar otra vez</b> en cualquier tarjeta verde. &nbsp;·&nbsp; <b>¿Carpeta de solo lectura?</b> Sin problema: la herramienta guarda copias renombradas en tu propio Drive. &nbsp;·&nbsp; <b>Vídeos 4K</b> (etiqueta roja 4K): pulsa <b>Abrir conversor</b> y sigue los pasos de la ventana.',
   convert: 'Abrir conversor',
+  copyBanner: (dest, name) => `🔒 <b>Carpeta de solo lectura.</b> Aquí no puedes renombrar, así que la herramienta guardará <b>copias con los nombres nuevos</b> en tu propio Drive: ${dest ? `<a href="https://drive.google.com/drive/folders/${dest}" target="_blank">${name} ↗</a>` : `<b>${name}</b> (se crea con la primera copia)`} &nbsp;<button class="link" id="changeDest">Cambiar carpeta</button>`,
+  copyN: n => `Copiar ${n} con nombres nuevos`, copying: (i, n) => `Copiando ${i} de ${n}…`, copied: '✓ Copiado', blocked: '⛔ El propietario bloqueó las copias. Pide acceso.',
+  tCopyDone: (n, name) => `✓ Hecho. ${n} copia${n === 1 ? '' : 's'} guardada${n === 1 ? '' : 's'} en "${name}".`, confirmCopy: (n, a, b) => `¿Guardar ${n} copia${n === 1 ? '' : 's'} renombrada${n === 1 ? '' : 's'} en tu Drive?\n\nLa primera:\n${a}\n→ ${b}`,
+  destPrompt: 'Pega el enlace de una carpeta de Drive que sea tuya (déjalo vacío para crear una automáticamente):',
   mTitle: 'Convertir vídeos 4K a 1080p', mSub: 'Se hace en Google, no se descarga nada a tu ordenador. Tarda unos 20–60 segundos por vídeo.',
   mS1: 'Pulsa <b>Abrir conversor</b> (abajo a la derecha). Se abre en una pestaña nueva.',
   mS2: 'En la pestaña nueva, pulsa el botón <b>▶</b> del bloque <b>1️⃣</b>. Si avisa <i>"This notebook was not authored by Google"</i>, pulsa <b>Run anyway</b>. Luego elige tu cuenta de Google y pulsa <b>Continuar</b> / <b>Permitir</b>.',
   mS3: 'En el bloque 2, pulsa la casilla <b>FOLDER_LINK</b>, pega este enlace (<span class="kbd">Cmd</span> + <span class="kbd">V</span>, ya está copiado) y pulsa <b>▶</b> en el bloque 2:',
-  mS4: 'Espera a que diga <b>Converted…</b>. Vuelve a esta pestaña y pulsa <b>Recargar carpeta</b>. Las copias 1080p aparecen listas para nombrar; los originales 4K se mueven a la subcarpeta <i>4K originals</i>.',
+  mS4: 'Espera a que diga <b>Converted…</b>. Vuelve a esta pestaña y pulsa <b>Recargar carpeta</b>. Las copias 1080p aparecen listas para nombrar; los originales 4K se mueven a la subcarpeta <i>4K originals</i>. <br><b>¿Carpeta de solo lectura?</b> El conversor guarda los vídeos 1080p en una carpeta nueva <i>1080p – …</i> de tu Drive y muestra su enlace. Pega ese enlace aquí en <b>Enlace de la carpeta de Google Drive</b> y ponles nombre allí.',
   mCopy: 'Copiar', mCopied: 'Copiado ✓', mClose: 'Cerrar', mReload: 'Recargar carpeta', mOpen: 'Abrir conversor ↗', convert4k: n => `Convertir ${n} vídeo${n === 1 ? '' : 's'} 4K`, tConvert: 'Enlace de la carpeta copiado. En el conversor: pulsa ▶ en el bloque 1, pega el enlace en el bloque 2 y pulsa ▶.', tNoFolder: 'Primero carga una carpeta',
   hide: 'Ocultar', show: 'Ver instrucciones',
   lYymm: 'YYMM (año+mes)', lShoot: 'Shoot (nombre de la sesión)', lLoc: 'Location / carpeta', lFolder: 'Enlace de la carpeta de Google Drive', load: 'Cargar carpeta',
@@ -301,6 +313,8 @@ function applyLang() {
 document.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { lang = b.dataset.lang; SS('lang', lang); applyLang(); setAccount(); render(); });
 
 let token = null, tokenClient = null, email = '';
+let copyMode = false, destSub = null;
+const copiedMap = JSON.parse(LS('copied') || '{}');
 let files = [], subfolders = [], crumbs = [], focused = null;
 let chips = JSON.parse(LS('chips') || '[]');
 
@@ -329,7 +343,7 @@ howto(LS('howto') !== '0');
 // persisted fields
 ['yymm', 'shoot', 'location', 'folder'].forEach(id => {
   $(id).value = LS('f_' + id) || '';
-  $(id).addEventListener('input', () => { SS('f_' + id, $(id).value); render(); });
+  $(id).addEventListener('input', () => { SS('f_' + id, $(id).value); if (id !== 'folder') destSub = null; render(); });
 });
 $('pxImages').checked = LS('pxImages') !== '0';
 $('labelVideo').checked = LS('labelVideo') !== '0';
@@ -393,7 +407,7 @@ async function openFolder(id, name) {
       if (i >= 0) crumbs = crumbs.slice(0, i + 1); else crumbs.push({ id, name });
     }
     $('grid').innerHTML = ''; $('emptyMsg').style.display = ''; $('emptyMsg').textContent = t('loading');
-    const fields = 'nextPageToken,files(id,name,mimeType,thumbnailLink,createdTime,imageMediaMetadata(width,height,time),videoMediaMetadata(width,height,durationMillis))';
+    const fields = 'nextPageToken,files(id,name,mimeType,thumbnailLink,createdTime,capabilities(canRename,canCopy),imageMediaMetadata(width,height,time),videoMediaMetadata(width,height,durationMillis))';
     let items = [], pageToken = '';
     do {
       const q = encodeURIComponent(`'${id}' in parents and trashed=false`);
@@ -402,6 +416,8 @@ async function openFolder(id, name) {
     } while (pageToken);
     subfolders = items.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
     files = items.filter(f => f.mimeType !== 'application/vnd.google-apps.folder').map(hydrate);
+    copyMode = files.length > 0 && files.some(f => !f.canRename);
+    destSub = null;
     if (crumbs.length > 1) { $('location').value = crumbs[crumbs.length - 1].name; SS('f_location', $('location').value); }
     try { sessionStorage.setItem('crumbs', JSON.stringify(crumbs)); } catch (e) {}
     sortFiles();
@@ -419,8 +435,10 @@ function hydrate(f) {
   const o = { id: f.id, name: f.name, ext, w, h, long: Math.max(w, h),
     isVideo: f.mimeType.startsWith('video/'), thumb: f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+(-c)?$/, '=s600') : '',
     dur: vm && vm.durationMillis ? Math.round(vm.durationMillis / 1000) : 0,
-    created: (im && im.time) || f.createdTime || '', subject: '', selected: false, done: false };
-  const m = f.name.match(NAME_RE);
+    created: (im && im.time) || f.createdTime || '', subject: '', selected: false, done: false,
+    canRename: !f.capabilities || f.capabilities.canRename !== false, canCopy: !f.capabilities || f.capabilities.canCopy !== false };
+  const m = f.name.match(NAME_RE) || (copiedMap[f.id] ? copiedMap[f.id].match(NAME_RE) : null);
+  if (m && copiedMap[f.id] && !f.name.match(NAME_RE)) o.copiedAs = copiedMap[f.id];
   if (m) { o.done = true; o.subject = m[4]; o.existingNum = parseInt(m[5], 10); o.res = m[6]; }
   else o.res = defaultRes(o);
   return o;
@@ -443,7 +461,7 @@ function computeNames() {
   files.forEach(f => { if (f.done && f.subject) { const k = f.subject.toLowerCase(); counters[k] = Math.max(counters[k] || 0, f.existingNum || 0); } });
   files.forEach(f => {
     f.newName = '';
-    if (f.done) return;
+    if (f.done || (copyMode && !f.canCopy)) return;
     const subj = clean(f.subject);
     if (!yymm || !shoot || !loc || !subj) return;
     const k = subj.toLowerCase();
@@ -484,7 +502,9 @@ function render() {
 
   const ready = files.filter(f => f.newName).length, named = files.filter(f => f.done).length, left = files.length - named - ready;
   $('counts').innerHTML = t('counts', files.length, named, ready, left);
-  $('rename').textContent = ready ? t('renameN', ready) : t('rename0');
+  $('copybar').style.display = copyMode ? '' : 'none';
+  if (copyMode) { const dl = destLabel(); $('copybar').innerHTML = t('copyBanner', dl.id, dl.name); wireChangeDest(); }
+  $('rename').textContent = ready ? (copyMode ? t('copyN', ready) : t('renameN', ready)) : (copyMode ? t('copyN', 0) : t('rename0'));
   $('rename').disabled = !ready;
   const n4k = files.filter(f => f.isVideo && f.long > 1920).length;
   $('convert').textContent = n4k ? t('convert4k', n4k) : t('convert');
@@ -509,7 +529,8 @@ function render() {
           ${f.done ? '' : `<input type="text" class="res" value="${esc(f.res || '')}" placeholder="${t('size')}" title="${t('size')}">`}
         </div>
         ${f.done
-          ? `<div class="donebar"><span>${t('named')}</span><button class="link again">${t('again')}</button></div>`
+          ? `${f.copiedAs ? `<div class="newname done">→ ${esc(f.copiedAs)}</div>` : ''}<div class="donebar"><span>${f.copiedAs ? t('copied') : t('named')}</span><button class="link again">${t('again')}</button></div>`
+          : (copyMode && !f.canCopy) ? `<div class="blocked">${t('blocked')}</div>`
           : `<input type="text" class="subject" list="subjectlist" placeholder="${t('subjPh')}" value="${esc(f.subject)}">
              <div class="newname ${f.newName ? 'ok' : ''}">${f.newName ? '→ ' + esc(f.newName) : (f.subject && missingFields().length ? t('fillIn', missingFields().join(', ')) : t('newHere'))}</div>`}
       </div>
@@ -519,9 +540,10 @@ function render() {
   g.querySelectorAll('.card').forEach(card => {
     const f = files.find(x => x.id === card.dataset.id);
     if (f.done) {
-      card.querySelector('.again').onclick = () => { f.done = false; f.subject = ''; f.res = defaultRes(f); render(); const el = document.querySelector(`.card[data-id="${f.id}"] .subject`); if (el) el.focus(); };
+      card.querySelector('.again').onclick = () => { f.done = false; f.copiedAs = null; f.subject = ''; f.res = defaultRes(f); render(); const el = document.querySelector(`.card[data-id="${f.id}"] .subject`); if (el) el.focus(); };
       return;
     }
+    if (copyMode && !f.canCopy) return;
     card.querySelector('.sel').onchange = e => { f.selected = e.target.checked; card.classList.toggle('selected', f.selected); };
     card.querySelector('.thumb').onclick = e => { if (e.target.classList.contains('sel')) return; f.selected = !f.selected; card.querySelector('.sel').checked = f.selected; card.classList.toggle('selected', f.selected); };
     const s = card.querySelector('.subject');
@@ -546,6 +568,35 @@ function applySubject(s) {
 $('newchip').onkeydown = e => { if (e.key === 'Enter') { const v = clean($('newchip').value); if (v && !chips.some(c => c.toLowerCase() === v.toLowerCase())) chips.push(v); $('newchip').value = ''; render(); } };
 $('selectAll').onclick = () => { files.forEach(f => { if (!f.done) f.selected = true; }); render(); };
 $('selectNone').onclick = () => { files.forEach(f => f.selected = false); render(); };
+
+// ---------- copy mode (view-only folders) ----------
+function destKey() { return 'dest_' + $('yymm').value.trim() + '_' + clean($('shoot').value); }
+function destRootName() { return 'Renamed – ' + [$('yymm').value.trim(), clean($('shoot').value)].filter(Boolean).join(' '); }
+function destLabel() { const d = LS(destKey()); return { id: d ? JSON.parse(d).id : '', name: d ? JSON.parse(d).name : destRootName() }; }
+async function ensureFolder(name, parent) {
+  const q = encodeURIComponent(`name='${name.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false and '${parent || 'root'}' in parents`);
+  const d = await api(`/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`);
+  if (d.files && d.files.length) return d.files[0].id;
+  const body = { name, mimeType: 'application/vnd.google-apps.folder' }; if (parent) body.parents = [parent];
+  return (await api('/files?supportsAllDrives=true&fields=id', { method: 'POST', body: JSON.stringify(body) })).id;
+}
+async function ensureDest() {
+  let d = LS(destKey()); let root;
+  if (d) root = JSON.parse(d).id;
+  else { root = await ensureFolder(destRootName(), null); SS(destKey(), JSON.stringify({ id: root, name: destRootName() })); }
+  if (!destSub) destSub = await ensureFolder(clean($('location').value) || 'Files', root);
+  return destSub;
+}
+function wireChangeDest() {
+  const b = document.getElementById('changeDest'); if (!b) return;
+  b.onclick = async () => {
+    const v = prompt(t('destPrompt'), ''); if (v === null) return;
+    if (!v.trim()) { localStorage.removeItem(destKey()); destSub = null; render(); return; }
+    const id = folderId(v);
+    try { const m = await api(`/files/${id}?fields=id,name&supportsAllDrives=true`); SS(destKey(), JSON.stringify({ id: m.id, name: m.name })); destSub = null; render(); }
+    catch (e) { toast(t('tOpenFail', e.message), 'bad', 7000); }
+  };
+}
 
 // ---------- export / rename ----------
 const COLAB = 'https://colab.research.google.com/github/jordialbanell/shoot-renamer/blob/main/convert_4k_to_1080p.ipynb';
@@ -573,20 +624,28 @@ $('rename').onclick = async () => {
   if (!todo.length) { toast(t('tNothing'), 'info'); return; }
   const dupes = todo.map(f => f.newName.toLowerCase()).filter((n, i, a) => a.indexOf(n) !== i);
   if (dupes.length) { alert(t('dupes') + [...new Set(dupes)].join('\n')); return; }
-  if (!confirm(t('confirm', todo.length, todo[0].name, todo[0].newName))) return;
+  if (!confirm((copyMode ? t('confirmCopy', todo.length, todo[0].name, todo[0].newName) : t('confirm', todo.length, todo[0].name, todo[0].newName)))) return;
   $('rename').disabled = true;
-  let ok = 0, fail = 0;
+  let ok = 0, fail = 0, dest = null;
+  if (copyMode) { try { dest = await ensureDest(); } catch (e) { $('rename').disabled = false; toast(t('tOpenFail', e.message), 'bad', 8000); return; } }
   for (const f of todo) {
-    $('rename').textContent = t('renaming', ok + fail + 1, todo.length);
+    $('rename').textContent = copyMode ? t('copying', ok + fail + 1, todo.length) : t('renaming', ok + fail + 1, todo.length);
     try {
-      await api(`/files/${f.id}?supportsAllDrives=true`, { method: 'PATCH', body: JSON.stringify({ name: f.newName }) });
-      log('renamed ' + f.name + ' → ' + f.newName);
-      f.name = f.newName; const m = f.newName.match(NAME_RE); f.done = true; f.existingNum = m ? parseInt(m[5], 10) : 0; f.newName = ''; ok++;
+      if (copyMode) {
+        await api(`/files/${f.id}/copy?supportsAllDrives=true&fields=id`, { method: 'POST', body: JSON.stringify({ name: f.newName, parents: [dest] }) });
+        log('copied ' + f.name + ' → ' + f.newName);
+        copiedMap[f.id] = f.newName; SS('copied', JSON.stringify(copiedMap)); f.copiedAs = f.newName;
+      } else {
+        await api(`/files/${f.id}?supportsAllDrives=true`, { method: 'PATCH', body: JSON.stringify({ name: f.newName }) });
+        log('renamed ' + f.name + ' → ' + f.newName);
+        f.name = f.newName;
+      }
+      const m = f.newName.match(NAME_RE); f.done = true; f.existingNum = m ? parseInt(m[5], 10) : 0; f.newName = ''; ok++;
     } catch (e) { fail++; log('FAILED ' + f.name + ': ' + e.message); }
   }
   render();
   if (fail) toast(t('tPartial', ok, todo.length, fail), 'bad', 8000);
-  else toast(t('tDone', ok), 'ok', 5000);
+  else toast(copyMode ? t('tCopyDone', ok, destLabel().name + ' / ' + clean($('location').value)) : t('tDone', ok), 'ok', 6000);
 };
 
 // keep the Google session across page refreshes (Google tokens last 1 hour)
